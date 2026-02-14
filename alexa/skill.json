@@ -1,0 +1,30 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "en-US": {
+          "summary": "Control your NuVo MusicPort multi-room audio system",
+          "examplePhrases": [
+            "Alexa, ask NuVo to turn on the living room",
+            "Alexa, tell NuVo to set master bedroom volume to 50",
+            "Alexa, ask NuVo to start party mode"
+          ],
+          "name": "NuVo MusicPort Control",
+          "description": "Control your NuVo MusicPort multi-room audio system with voice commands. Turn zones on and off, adjust volume, change sources, and activate party mode."
+        }
+      },
+      "isAvailableWorldwide": true,
+      "testingInstructions": "Test with your NuVo MusicPort device connected to the internet.",
+      "category": "SMART_HOME",
+      "distributionCountries": []
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "arn:aws:lambda:us-east-1:YOUR_ACCOUNT_ID:function:nuvo-musicport-skill"
+        }
+      }
+    },
+    "manifestVersion": "1.0"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "NuVo MusicPort",
+        "description": "Enter your NuVo MusicPort API server details",
+        "data": {
+          "api_host": "API Host",
+          "api_port": "API Port"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the API server",
+      "unknown": "Unexpected error occurred"
+    }
+  }
+}

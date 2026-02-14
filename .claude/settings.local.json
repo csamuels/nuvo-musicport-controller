@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python telnet_explorer.py:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(ip addr:*)",
+      "Bash(ipconfig:*)",
+      "Bash(arp:*)",
+      "Bash(source:*)",
+      "Bash(pip install:*)",
+      "Bash(timeout 5 uvicorn:*)",
+      "Bash(timeout 8 bash -c \"source venv/Scripts/activate && python test_websocket.py & sleep 2 && curl -s -X POST http://localhost:8000/api/zones/3/volume -H ''Content-Type: application/json'' -d ''{\"\"volume\"\": 40}'' && sleep 3\")",
+      "Bash(npm init:*)",
+      "Bash(gh:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

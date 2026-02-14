@@ -1,0 +1,235 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "nuvo",
+      "intents": [
+        {
+          "name": "PowerOnIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "turn on {ZoneName}",
+            "turn on the {ZoneName}",
+            "power on {ZoneName}",
+            "start {ZoneName}"
+          ]
+        },
+        {
+          "name": "PowerOffIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "turn off {ZoneName}",
+            "turn off the {ZoneName}",
+            "power off {ZoneName}",
+            "stop {ZoneName}"
+          ]
+        },
+        {
+          "name": "SetVolumeIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            },
+            {
+              "name": "VolumeLevel",
+              "type": "AMAZON.NUMBER"
+            }
+          ],
+          "samples": [
+            "set {ZoneName} volume to {VolumeLevel}",
+            "set {ZoneName} to {VolumeLevel}",
+            "change {ZoneName} volume to {VolumeLevel}"
+          ]
+        },
+        {
+          "name": "VolumeUpIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "volume up in {ZoneName}",
+            "turn up {ZoneName}",
+            "increase {ZoneName} volume",
+            "louder in {ZoneName}"
+          ]
+        },
+        {
+          "name": "VolumeDownIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "volume down in {ZoneName}",
+            "turn down {ZoneName}",
+            "decrease {ZoneName} volume",
+            "quieter in {ZoneName}"
+          ]
+        },
+        {
+          "name": "MuteIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "mute {ZoneName}",
+            "mute the {ZoneName}"
+          ]
+        },
+        {
+          "name": "UnmuteIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            }
+          ],
+          "samples": [
+            "unmute {ZoneName}",
+            "unmute the {ZoneName}"
+          ]
+        },
+        {
+          "name": "SetSourceIntent",
+          "slots": [
+            {
+              "name": "ZoneName",
+              "type": "ZONE_NAMES"
+            },
+            {
+              "name": "SourceName",
+              "type": "SOURCE_NAMES"
+            }
+          ],
+          "samples": [
+            "play {SourceName} in {ZoneName}",
+            "change {ZoneName} to {SourceName}",
+            "set {ZoneName} source to {SourceName}"
+          ]
+        },
+        {
+          "name": "PartyModeIntent",
+          "slots": [],
+          "samples": [
+            "start party mode",
+            "enable party mode",
+            "turn on party mode",
+            "party mode on"
+          ]
+        },
+        {
+          "name": "AllOffIntent",
+          "slots": [],
+          "samples": [
+            "turn off all zones",
+            "turn everything off",
+            "all off",
+            "power off all"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        }
+      ],
+      "types": [
+        {
+          "name": "ZONE_NAMES",
+          "values": [
+            {
+              "name": {
+                "value": "master bedroom"
+              }
+            },
+            {
+              "name": {
+                "value": "master bath"
+              }
+            },
+            {
+              "name": {
+                "value": "living room"
+              }
+            },
+            {
+              "name": {
+                "value": "hall bath"
+              }
+            },
+            {
+              "name": {
+                "value": "kitchen"
+              }
+            },
+            {
+              "name": {
+                "value": "guest bedroom"
+              }
+            }
+          ]
+        },
+        {
+          "name": "SOURCE_NAMES",
+          "values": [
+            {
+              "name": {
+                "value": "music server a"
+              }
+            },
+            {
+              "name": {
+                "value": "music server b"
+              }
+            },
+            {
+              "name": {
+                "value": "music server c"
+              }
+            },
+            {
+              "name": {
+                "value": "music server d"
+              }
+            },
+            {
+              "name": {
+                "value": "source five"
+              }
+            },
+            {
+              "name": {
+                "value": "source six"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

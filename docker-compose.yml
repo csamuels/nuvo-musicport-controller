@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  nuvo-api:
+    build: .
+    container_name: nuvo-musicport-api
+    ports:
+      - "8000:8000"
+    environment:
+      - NUVO_HOST=10.0.0.45
+      - NUVO_PORT=5006
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=false
+    restart: unless-stopped
+    networks:
+      - nuvo-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Optional: Web UI (if built)
+  nuvo-web:
+    image: nginx:alpine
+    container_name: nuvo-musicport-web
+    ports:
+      - "3000:80"
+    volumes:
+      - ./web/dist:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - nuvo-api
+    restart: unless-stopped
+    networks:
+      - nuvo-network
+
+networks:
+  nuvo-network:
+    driver: bridge
