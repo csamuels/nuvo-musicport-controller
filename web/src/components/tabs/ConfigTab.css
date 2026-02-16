@@ -1,0 +1,27 @@
+.config-tab {
+  padding: 1.5rem;
+}
+
+.config-tab h3 {
+  margin: 2rem 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.config-tab h3:first-child {
+  margin-top: 0;
+}
+
+.device-settings-section,
+.radio-management-section,
+.credentials-section {
+  margin-bottom: 3rem;
+}
+
+@media (max-width: 768px) {
+  .config-tab {
+    padding: 1rem;
+  }
+}

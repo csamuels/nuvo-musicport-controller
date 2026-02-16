@@ -1,0 +1,176 @@
+.message-banner {
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 0.5rem 2rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  min-height: auto;
+  max-height: 120px;
+}
+
+.message-banner:hover {
+  background: #f9f9f9;
+}
+
+.message-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 0.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  min-height: 40px;
+}
+
+.message-item:last-child {
+  margin-bottom: 0;
+}
+
+.message-item.info {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.message-item.success {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+
+.message-item.error {
+  background: #ffebee;
+  color: #d32f2f;
+}
+
+.message-item.loading {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.message-icon {
+  font-size: 1.1rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.message-item.loading .message-icon {
+  animation: spin 1s linear infinite;
+}
+
+.message-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.message-close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.6;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.message-close:hover {
+  opacity: 1;
+}
+
+.message-more-indicator {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+  padding: 0.25rem;
+}
+
+/* Modal */
+.message-history-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.message-history-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.message-history-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.message-history-header h3 {
+  margin: 0;
+}
+
+.message-history-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.message-history-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.message-history-actions button:first-child {
+  background: #f44336;
+  color: white;
+}
+
+.message-history-actions button:last-child {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.message-history-list {
+  padding: 1rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.message-history-list .message-item {
+  margin-bottom: 0.75rem;
+}
+
+.message-timestamp {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  margin-left: auto;
+  margin-right: 0.5rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

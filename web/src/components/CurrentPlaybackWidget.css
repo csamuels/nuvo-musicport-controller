@@ -1,0 +1,105 @@
+.current-playback-widget {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.current-playback-widget.inactive {
+  background: #e0e0e0;
+  color: #666;
+}
+
+.playback-info {
+  flex: 1;
+}
+
+.playback-zone {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.party-badge {
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.playback-source {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin-bottom: 0.75rem;
+}
+
+.playback-track {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.track-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.track-artist, .track-album {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.playback-controls {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.playback-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: white;
+  font-size: 1.5rem;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.playback-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.playback-btn.play-pause {
+  width: 60px;
+  height: 60px;
+  font-size: 1.8rem;
+}
+
+.playback-status {
+  text-align: center;
+  opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+  .current-playback-widget {
+    flex-direction: column;
+    text-align: center;
+  }
+}

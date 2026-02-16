@@ -1,0 +1,39 @@
+.control-tab {
+  padding: 1.5rem;
+}
+
+.party-mode-banner {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin: 1rem 0;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.control-tab h3 {
+  margin: 2rem 0 1rem 0;
+  color: #333;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 0.5rem;
+}
+
+.zones-section, .radio-section, .music-section {
+  margin-bottom: 2rem;
+}
+
+.zones-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .zones-grid-compact {
+    grid-template-columns: 1fr;
+  }
+}
