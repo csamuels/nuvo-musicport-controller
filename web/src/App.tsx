@@ -1,14 +1,26 @@
 import { useNuVo } from './hooks/useNuVo';
 import { ZoneCard } from './components/ZoneCard';
 import { SystemControls } from './components/SystemControls';
+import { DeviceStatus } from './components/DeviceStatus';
+import { RadioStations } from './components/RadioStations';
+import { MusicServerBrowser } from './components/MusicServerBrowser';
+import { CredentialsManager } from './components/CredentialsManager';
+import { StatusBar } from './components/StatusBar';
+import { StatusProvider } from './contexts/StatusContext';
+import { config } from './services/config';
 import './App.css';
 
-function App() {
+interface AppProps {
+  apiBaseUrl?: string;
+}
+
+function App({ apiBaseUrl }: AppProps) {
   const {
     zones,
     sources,
     loading,
     error,
+    deviceIP,
     powerOn,
     powerOff,
     setVolume,
@@ -17,7 +29,7 @@ function App() {
     togglePartyMode,
     allOff,
     refresh,
-  } = useNuVo();
+  } = useNuVo({ apiBaseUrl });
 
   const handlePowerToggle = async (zoneNumber: number, shouldBeOn: boolean) => {
     try {
@@ -74,6 +86,13 @@ function App() {
     );
   }
 
+  // Determine if party mode is active and which zone is the host
+  const partyModeActive = zones.some(z => z.party_mode === 'Host' || z.party_mode === 'Slave');
+  const hostZone = zones.find(z => z.party_mode === 'Host');
+
+  // Filter zones: in party mode, show only the host zone
+  const displayZones = partyModeActive && hostZone ? [hostZone] : zones;
+
   return (
     <div className="app">
       <header className="app-header">
@@ -87,8 +106,20 @@ function App() {
         onRefresh={refresh}
       />
 
+      <div style={{ margin: '1rem' }}>
+        <DeviceStatus apiUrl={apiBaseUrl || 'http://localhost:8000'} />
+      </div>
+
+      <RadioStations apiUrl={apiBaseUrl} />
+
+      {partyModeActive && (
+        <div className="party-mode-banner">
+          🎉 Party Mode Active - Controlling all zones from {hostZone?.name}
+        </div>
+      )}
+
       <div className="zones-grid">
-        {zones.map((zone) => (
+        {displayZones.map((zone) => (
           <ZoneCard
             key={zone.guid}
             zone={zone}
@@ -101,10 +132,16 @@ function App() {
         ))}
       </div>
 
+      <MusicServerBrowser apiUrl={apiBaseUrl} />
+
+      <CredentialsManager apiUrl={apiBaseUrl} />
+
       <footer className="app-footer">
         <span className="status-indicator"></span>
-        Connected
+        Connected to MusicPort at {deviceIP || 'loading...'}
       </footer>
+
+      <StatusBar />
     </div>
   );
 }

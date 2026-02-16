@@ -8,6 +8,12 @@ USAGE:
 1. Run this script on your computer
 2. Configure your iPhone app to connect to YOUR_COMPUTER_IP instead of 10.0.0.45
 3. This proxy will forward traffic to the real MusicPort and log everything
+
+MULTI-PORT SUPPORT:
+python proxy_sniffer.py 5006 5004 --log-dir ./logs
+- Listens on ports 5006 and 5004
+- Forwards each port to the same port on target device
+- Creates separate log files for each port in ./logs directory
 """
 
 import socket
@@ -15,17 +21,19 @@ import threading
 import datetime
 import json
 import sys
+import os
+import argparse
 
 MUSICPORT_IP = "10.0.0.45"
-PROXY_PORT = 8000  # Port to listen on (change this based on scanner results)
-LOG_FILE = r"C:\Users\Corey\PycharmProjects\musicport\tmp\sniff-output.txt"
 
 class ProxyConnection:
-    def __init__(self, client_socket, client_addr, target_ip, target_port):
+    def __init__(self, client_socket, client_addr, target_ip, target_port, log_file, listen_port):
         self.client_socket = client_socket
         self.client_addr = client_addr
         self.target_ip = target_ip
         self.target_port = target_port
+        self.listen_port = listen_port
+        self.log_file = log_file
         self.log_data = []
         self.packet_count = 0
 
@@ -36,6 +44,8 @@ class ProxyConnection:
 
         log_entry = {
             'timestamp': timestamp,
+            'port': self.target_port,
+            'listen_port': self.listen_port,
             'packet_num': self.packet_count,
             'direction': direction,
             'length': len(data),
@@ -45,8 +55,8 @@ class ProxyConnection:
 
         self.log_data.append(log_entry)
 
-        # Print to console
-        print(f"\n[{timestamp}] Packet #{self.packet_count}")
+        # Print to console with port info
+        print(f"\n[{timestamp}] Port {self.target_port} - Packet #{self.packet_count}")
         print(f"  Direction: {direction}")
         print(f"  Length: {len(data)} bytes")
         print(f"  HEX: {data.hex()}")
@@ -58,9 +68,8 @@ class ProxyConnection:
     def save_log(self):
         """Save log to file"""
         try:
-            import os
-            os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
-            with open(LOG_FILE, 'w') as f:
+            os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
+            with open(self.log_file, 'w') as f:
                 json.dump(self.log_data, f, indent=2)
         except Exception as e:
             print(f"[!] Warning: Could not save log: {e}")
@@ -146,50 +155,15 @@ def get_local_ip():
     except:
         return "YOUR_COMPUTER_IP"
 
-def main():
-    if len(sys.argv) < 2:
-        print("=" * 60)
-        print("Nuvo MusicPort TCP Proxy Sniffer")
-        print("=" * 60)
-        print("\nUsage: python proxy_sniffer.py <target_port> [listen_port]")
-        print("\nExample:")
-        print("  python proxy_sniffer.py 5004        # Listen on 8000, forward to 5004")
-        print("  python proxy_sniffer.py 5006 5006   # Listen on 5006, forward to 5006")
-        print("\nThis will:")
-        print(f"  1. Listen on YOUR_COMPUTER:<listen_port> (default 8000)")
-        print(f"  2. Forward to {MUSICPORT_IP}:<target_port>")
-        print("  3. Log all traffic to proxy_capture.log")
-        print("\nRun scanner.py first to find which port to use!")
-        sys.exit(1)
+def start_proxy_listener(port, target_ip, log_file, local_ip):
+    """Start a proxy listener for a specific port"""
+    print(f"[*] Starting listener on port {port} -> {target_ip}:{port}")
 
-    target_port = int(sys.argv[1])
-    listen_port = int(sys.argv[2]) if len(sys.argv) > 2 else PROXY_PORT
-    local_ip = get_local_ip()
-
-    print("=" * 60)
-    print("Nuvo MusicPort TCP Proxy Sniffer")
-    print("=" * 60)
-    print(f"\n[*] Listening on: {local_ip}:{listen_port}")
-    print(f"[*] Forwarding to: {MUSICPORT_IP}:{target_port}")
-    print(f"[*] Logging to: {LOG_FILE}")
-    print("\n" + "=" * 60)
-    print("IMPORTANT SETUP:")
-    print("=" * 60)
-    print(f"Configure your iPhone app to connect to:")
-    print(f"  IP: {local_ip}")
-    print(f"  Port: {listen_port}")
-    print("\nProxy will forward to:")
-    print(f"  IP: {MUSICPORT_IP}")
-    print(f"  Port: {target_port}")
-    print("=" * 60)
-    print("\nWaiting for connections... (Press Ctrl+C to stop)\n")
-
-    # Create listening socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     try:
-        server_socket.bind(('0.0.0.0', listen_port))
+        server_socket.bind(('0.0.0.0', port))
         server_socket.listen(5)
 
         while True:
@@ -199,22 +173,94 @@ def main():
             proxy = ProxyConnection(
                 client_socket,
                 client_addr,
-                MUSICPORT_IP,
-                target_port
+                target_ip,
+                port,
+                log_file,
+                port
             )
 
             proxy_thread = threading.Thread(target=proxy.start)
             proxy_thread.daemon = True
             proxy_thread.start()
 
+    except Exception as e:
+        print(f"\n[!] Error on port {port}: {e}")
+        server_socket.close()
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Nuvo MusicPort Multi-Port TCP Proxy Sniffer',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python proxy_sniffer.py 5004                    # Single port (listen on 5004, forward to 5004)
+  python proxy_sniffer.py 5006 5004               # Multiple ports
+  python proxy_sniffer.py 5006 5004 --log-dir ./logs  # Custom log directory
+  python proxy_sniffer.py 5006 5004 --target 10.0.0.45  # Custom target IP
+
+The proxy will:
+  - Listen on each specified port
+  - Forward to the same port number on the target device
+  - Create separate log files for each port (e.g., port-5006.json, port-5004.json)
+        """
+    )
+
+    parser.add_argument('ports', nargs='+', type=int,
+                        help='Port(s) to listen on and forward to')
+    parser.add_argument('--target', default=MUSICPORT_IP,
+                        help=f'Target device IP (default: {MUSICPORT_IP})')
+    parser.add_argument('--log-dir', default='./logs',
+                        help='Directory for log files (default: ./logs)')
+
+    args = parser.parse_args()
+
+    local_ip = get_local_ip()
+    target_ip = args.target
+    log_dir = args.log_dir
+    ports = args.ports
+
+    # Create log directory
+    os.makedirs(log_dir, exist_ok=True)
+
+    print("=" * 70)
+    print("Nuvo MusicPort Multi-Port TCP Proxy Sniffer")
+    print("=" * 70)
+    print(f"\n[*] Local IP: {local_ip}")
+    print(f"[*] Target Device: {target_ip}")
+    print(f"[*] Log Directory: {os.path.abspath(log_dir)}")
+    print(f"\n[*] Ports to proxy:")
+    for port in ports:
+        log_file = os.path.join(log_dir, f"port-{port}.json")
+        print(f"    Port {port} -> {target_ip}:{port} (log: {log_file})")
+
+    print("\n" + "=" * 70)
+    print("SETUP INSTRUCTIONS:")
+    print("=" * 70)
+    print(f"Configure your app to connect to: {local_ip}")
+    print(f"Using ports: {', '.join(map(str, ports))}")
+    print("=" * 70)
+    print("\nWaiting for connections... (Press Ctrl+C to stop)\n")
+
+    # Start a listener thread for each port
+    listener_threads = []
+    for port in ports:
+        log_file = os.path.join(log_dir, f"port-{port}.json")
+        thread = threading.Thread(
+            target=start_proxy_listener,
+            args=(port, target_ip, log_file, local_ip),
+            daemon=True
+        )
+        thread.start()
+        listener_threads.append(thread)
+
+    try:
+        # Keep main thread alive
+        for thread in listener_threads:
+            thread.join()
     except KeyboardInterrupt:
         print("\n\n[*] Shutting down proxy...")
-        server_socket.close()
-        print(f"[*] Capture saved to {LOG_FILE}")
-
-    except Exception as e:
-        print(f"\n[!] Error: {e}")
-        server_socket.close()
+        print(f"[*] Captures saved to {os.path.abspath(log_dir)}")
+        print(f"    Files: {', '.join([f'port-{p}.json' for p in ports])}")
 
 if __name__ == "__main__":
     main()

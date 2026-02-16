@@ -8,7 +8,7 @@ from nuvo_sdk import NuVoClient
 from ..dependencies import get_client
 from ..models import ZoneResponse, CommandResponse
 
-router = APIRouter(prefix="/zones", tags=["zones"])
+router = APIRouter(prefix="/zones", tags=["System"])
 
 
 class VolumeRequest(BaseModel):
@@ -140,7 +140,7 @@ async def set_volume(
     try:
         if not 0 <= request.volume <= 79:
             raise HTTPException(
-                status_code=400, detail="Volume must be between 0 and 79"
+                status_code=422, detail="Volume must be between 0 and 79"
             )
 
         await client.set_volume(request.volume, zone_number)

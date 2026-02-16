@@ -1,0 +1,172 @@
+.radio-stations {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+
+.radio-header {
+  margin-bottom: 20px;
+}
+
+.radio-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  color: var(--text);
+}
+
+.radio-description {
+  color: var(--text-dim);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.radio-loading {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-dim);
+  font-size: 1.1rem;
+}
+
+/* Compact Grid Layout */
+.stations-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+/* Compact Station Card */
+.station-card-compact {
+  position: relative;
+  background: var(--bg-hover);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  min-height: 85px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.station-card-compact:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+}
+
+.station-card-compact.loading {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+}
+
+/* Provider Badge */
+.station-provider-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Call Sign - Large and Bold */
+.station-call-sign-compact {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+  margin-top: 2px;
+  word-break: break-word;
+  padding-right: 50px; /* Space for badge */
+}
+
+/* Genre - Smaller, below call sign */
+.station-genre-compact {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.3;
+  margin-top: auto;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+/* Loading Indicator */
+.station-loading-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 18px;
+  animation: spin 1s linear infinite;
+  color: var(--primary);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .stations-grid-compact {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .radio-stations {
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .stations-grid-compact {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 10px;
+  }
+
+  .station-card-compact {
+    padding: 10px;
+    min-height: 75px;
+  }
+
+  .station-call-sign-compact {
+    font-size: 13px;
+  }
+
+  .station-genre-compact {
+    font-size: 10px;
+  }
+
+  .station-card-compact:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .stations-grid-compact {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  }
+
+  .station-card-compact {
+    padding: 8px;
+    min-height: 70px;
+  }
+
+  .station-call-sign-compact {
+    font-size: 12px;
+    padding-right: 45px;
+  }
+
+  .station-provider-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+  }
+}

@@ -7,7 +7,7 @@ from nuvo_sdk import NuVoClient
 from ..dependencies import get_client
 from ..models import SourceResponse
 
-router = APIRouter(prefix="/sources", tags=["sources"])
+router = APIRouter(prefix="/sources", tags=["System"])
 
 
 @router.get("", response_model=List[SourceResponse])

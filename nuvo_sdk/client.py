@@ -52,11 +52,23 @@ class NuVoClient:
         self._event_manager = EventManager()
 
         # Response queue for command replies - listener puts responses here
-        self._response_queue: asyncio.Queue = asyncio.Queue()
+        # Lazy-initialized to avoid event loop issues
+        self._response_queue: Optional[asyncio.Queue] = None
         self._waiting_for_response = False
+
+        # Lock to serialize command execution (prevent concurrent requests)
+        # Lazy-initialized to avoid event loop issues
+        self._command_lock: Optional[asyncio.Lock] = None
 
         # Active zone context (for commands that don't specify zone)
         self._active_zone: Optional[str] = None
+
+    def _ensure_async_resources(self):
+        """Ensure asyncio resources are created in the event loop context."""
+        if self._response_queue is None:
+            self._response_queue = asyncio.Queue()
+        if self._command_lock is None:
+            self._command_lock = asyncio.Lock()
 
     async def connect(self, host: Optional[str] = None, port: Optional[int] = None) -> None:
         """
@@ -69,6 +81,9 @@ class NuVoClient:
         Raises:
             ConnectionError: If connection fails
         """
+        # Ensure asyncio resources are initialized in event loop context
+        self._ensure_async_resources()
+
         if host:
             self.host = host
         if port:
@@ -232,6 +247,30 @@ class NuVoClient:
 
         return lines
 
+    async def _execute_command(self, command: str, timeout: float = COMMAND_TIMEOUT) -> List[str]:
+        """
+        Execute a command with lock to prevent concurrent access.
+
+        Args:
+            command: Command string to send
+            timeout: Read timeout in seconds
+
+        Returns:
+            List of response lines
+
+        Raises:
+            ConnectionError: If not connected
+            CommandError: If command fails
+            ProtocolError: If response parsing fails
+        """
+        # Ensure lock is initialized (should be done in connect, but just in case)
+        if self._command_lock is None:
+            self._ensure_async_resources()
+
+        async with self._command_lock:
+            await self._send_command(command)
+            return await self._read_response(timeout)
+
     async def _event_listener(self) -> None:
         """
         Background task to listen for all incoming data.
@@ -284,25 +323,37 @@ class NuVoClient:
             ConnectionError: If not connected
             ProtocolError: If response parsing fails
         """
-        await self._send_command("BrowseZones")
-        response = await self._read_response()
+        # Retry logic for reliability
+        for attempt in range(3):
+            try:
+                response = await self._execute_command("BrowseZones", timeout=10.0)
 
-        # Find XML response
-        xml_data = "".join(response)
-        if "<Zones" not in xml_data:
-            raise ProtocolError("No zones data in response")
+                # Find XML response
+                xml_data = "".join(response)
+                if "<Zones" not in xml_data:
+                    if attempt < 2:  # Retry if not last attempt
+                        await asyncio.sleep(0.5)
+                        continue
+                    raise ProtocolError("No zones data in response")
 
-        # Parse zones
-        zones = parse_zones_xml(xml_data)
+                # Parse zones
+                zones = parse_zones_xml(xml_data)
 
-        # Get detailed status to fill in volume, mute, etc.
-        await self._send_command("GetStatus")
-        status_response = await self._read_response(timeout=3.0)
+                # Get detailed status to fill in volume, mute, etc.
+                status_response = await self._execute_command("GetStatus", timeout=5.0)
 
-        # Update zones with status data
-        update_zones_from_status(zones, status_response)
+                # Update zones with status data
+                update_zones_from_status(zones, status_response)
 
-        return zones
+                return zones
+
+            except asyncio.TimeoutError:
+                if attempt < 2:
+                    await asyncio.sleep(0.5)
+                    continue
+                raise ProtocolError("Timeout getting zones data")
+
+        raise ProtocolError("Failed to get zones after 3 attempts")
 
     async def get_sources(self) -> List[Source]:
         """
@@ -315,15 +366,28 @@ class NuVoClient:
             ConnectionError: If not connected
             ProtocolError: If response parsing fails
         """
-        await self._send_command("BrowseSources")
-        response = await self._read_response()
+        # Retry logic for reliability
+        for attempt in range(3):
+            try:
+                response = await self._execute_command("BrowseSources", timeout=10.0)
 
-        # Find XML response
-        xml_data = "".join(response)
-        if "<Sources" not in xml_data:
-            raise ProtocolError("No sources data in response")
+                # Find XML response
+                xml_data = "".join(response)
+                if "<Sources" not in xml_data:
+                    if attempt < 2:  # Retry if not last attempt
+                        await asyncio.sleep(0.5)
+                        continue
+                    raise ProtocolError("No sources data in response")
 
-        return parse_sources_xml(xml_data)
+                return parse_sources_xml(xml_data)
+
+            except asyncio.TimeoutError:
+                if attempt < 2:
+                    await asyncio.sleep(0.5)
+                    continue
+                raise ProtocolError("Timeout getting sources data")
+
+        raise ProtocolError("Failed to get sources after 3 attempts")
 
     async def get_status(self) -> SystemStatus:
         """
@@ -341,8 +405,7 @@ class NuVoClient:
         sources = await self.get_sources()
 
         # Get system properties
-        await self._send_command("GetStatus")
-        status_response = await self._read_response(timeout=3.0)
+        status_response = await self._execute_command("GetStatus", timeout=3.0)
         system_props = parse_system_properties(status_response)
 
         return SystemStatus(
@@ -369,10 +432,11 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command(f"setZone {zone_guid}")
-        self._active_zone = zone_guid
-        # Small delay for command to process
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command(f"setZone {zone_guid}")
+            self._active_zone = zone_guid
+            # Small delay for command to process
+            await asyncio.sleep(0.1)
 
     async def power_on(self, zone_number: int) -> None:
         """
@@ -385,8 +449,9 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command(f"Power On {zone_number}")
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command(f"Power On {zone_number}")
+            await asyncio.sleep(0.1)
 
     async def power_off(self, zone_number: int) -> None:
         """
@@ -399,8 +464,9 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command(f"Power Off {zone_number}")
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command(f"Power Off {zone_number}")
+            await asyncio.sleep(0.1)
 
     async def set_volume(self, volume: int, zone_number: Optional[int] = None) -> None:
         """
@@ -418,12 +484,12 @@ class NuVoClient:
         if not 0 <= volume <= 79:
             raise ValueError("Volume must be between 0 and 79")
 
-        if zone_number:
-            await self._send_command(f"Volume {volume} {zone_number}")
-        else:
-            await self._send_command(f"Volume {volume}")
-
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            if zone_number:
+                await self._send_command(f"Volume {volume} {zone_number}")
+            else:
+                await self._send_command(f"Volume {volume}")
+            await asyncio.sleep(0.1)
 
     async def mute_toggle(self, zone_number: Optional[int] = None) -> None:
         """
@@ -436,12 +502,12 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        if zone_number:
-            await self._send_command(f"Mute Toggle {zone_number}")
-        else:
-            await self._send_command("Mute Toggle")
-
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            if zone_number:
+                await self._send_command(f"Mute Toggle {zone_number}")
+            else:
+                await self._send_command("Mute Toggle")
+            await asyncio.sleep(0.1)
 
     # Source control methods
 
@@ -456,8 +522,9 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command(f"setSource {source_guid}")
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command(f"setSource {source_guid}")
+            await asyncio.sleep(0.1)
 
     # System control methods
 
@@ -469,8 +536,9 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command("PartyMode Toggle")
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command("PartyMode Toggle")
+            await asyncio.sleep(0.1)
 
     async def all_off(self) -> None:
         """
@@ -480,8 +548,9 @@ class NuVoClient:
             ConnectionError: If not connected
             CommandError: If command fails
         """
-        await self._send_command("AllOff")
-        await asyncio.sleep(0.1)
+        async with self._command_lock:
+            await self._send_command("AllOff")
+            await asyncio.sleep(0.1)
 
     # Event subscription
 

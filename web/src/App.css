@@ -61,6 +61,30 @@ body {
   flex-wrap: wrap;
 }
 
+.party-mode-banner {
+  background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .control-button {
   padding: 12px 24px;
   border: none;
@@ -279,8 +303,127 @@ body {
   cursor: pointer;
 }
 
+/* Server Selector */
+.server-selector {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.discovery-status {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.spinner-small {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--bg-card);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.server-connected {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.server-connected h3 {
+  color: var(--success);
+  margin-bottom: 15px;
+}
+
+.server-ip {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin: 10px 0;
+}
+
+.server-name {
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.server-picker {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 30px;
+}
+
+.server-picker h3 {
+  margin-bottom: 10px;
+}
+
+.server-dropdown {
+  width: 100%;
+  padding: 12px;
+  margin: 20px 0;
+  background: var(--bg-hover);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.error-box {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+}
+
+.error-box p {
+  color: var(--danger);
+  margin-bottom: 20px;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.button-group button:hover {
+  background: var(--primary-dark);
+}
+
+.link-button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.link-button:hover {
+  background: var(--primary);
+  color: white;
+}
+
 @media (max-width: 768px) {
   .app { padding: 15px; }
   .app-header h1 { font-size: 2rem; }
   .zones-grid { grid-template-columns: 1fr; }
+  .button-group { flex-direction: column; }
+  .button-group button { width: 100%; }
 }

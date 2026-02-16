@@ -86,7 +86,7 @@ export function ZoneCard({
 
       {zone.party_mode !== 'Off' && (
         <div className="party-mode-badge">
-          🎉 Party Mode
+          🎉 Party Mode {zone.party_mode === 'Host' ? '(Host)' : '(Slave)'}
         </div>
       )}
     </div>

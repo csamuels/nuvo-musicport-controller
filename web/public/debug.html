@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Debug</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #fff; }
+        pre { background: #2a2a2a; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+        .zone { margin: 10px 0; padding: 10px; background: #333; border-radius: 5px; }
+        .host { border: 2px solid #ff6b6b; }
+        .slave { border: 2px solid #4ecdc4; }
+    </style>
+</head>
+<body>
+    <h1>NuVo API Debug</h1>
+
+    <button onclick="testAPI()">Test API</button>
+    <button onclick="testProxy()">Test Proxy</button>
+
+    <h2>API Response:</h2>
+    <pre id="output">Click "Test API" to fetch data...</pre>
+
+    <h2>Zones Display:</h2>
+    <div id="zones"></div>
+
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            const zonesDiv = document.getElementById('zones');
+
+            try {
+                output.textContent = 'Fetching from http://localhost:8000/api/zones...';
+
+                const response = await fetch('http://localhost:8000/api/zones');
+                const zones = await response.json();
+
+                output.textContent = JSON.stringify(zones, null, 2);
+
+                // Display zones
+                zonesDiv.innerHTML = zones.map(z => `
+                    <div class="zone ${z.party_mode.toLowerCase()}">
+                        <strong>${z.name}</strong> (${z.party_mode})<br>
+                        Volume: ${z.volume} / ${z.max_volume}<br>
+                        Source: ${z.source_name}<br>
+                        Power: ${z.is_on ? 'ON' : 'OFF'}, Mute: ${z.mute ? 'YES' : 'NO'}
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+
+        async function testProxy() {
+            const output = document.getElementById('output');
+            const zonesDiv = document.getElementById('zones');
+
+            try {
+                output.textContent = 'Fetching from /api/zones (via proxy)...';
+
+                const response = await fetch('/api/zones');
+                const zones = await response.json();
+
+                output.textContent = JSON.stringify(zones, null, 2);
+
+                // Display zones
+                zonesDiv.innerHTML = zones.map(z => `
+                    <div class="zone ${z.party_mode.toLowerCase()}">
+                        <strong>${z.name}</strong> (${z.party_mode})<br>
+                        Volume: ${z.volume} / ${z.max_volume}<br>
+                        Source: ${z.source_name}<br>
+                        Power: ${z.is_on ? 'ON' : 'OFF'}, Mute: ${z.mute ? 'YES' : 'NO'}
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
