@@ -1,8 +1,11 @@
 """Main NuVo MusicPort client."""
 
 import asyncio
+import logging
 import time
 from typing import List, Optional, Callable
+
+logger = logging.getLogger(__name__)
 from .models import Zone, Source, SystemStatus, StateChangeEvent
 from .protocol import (
     build_command,
@@ -98,9 +101,11 @@ class NuVoClient:
                 timeout=self.COMMAND_TIMEOUT,
             )
             self._connected = True
+            logger.info(f"[NuVoClient] TCP connection established to {self.host}:{self.port}")
 
             # Send initialization sequence
             await self._initialize()
+            logger.info(f"[NuVoClient] Initialization complete for {self.host}:{self.port}")
 
             # Start background listener for events
             self._listener_task = asyncio.create_task(self._event_listener())
@@ -112,6 +117,7 @@ class NuVoClient:
 
     async def disconnect(self) -> None:
         """Close connection to device."""
+        logger.info(f"[NuVoClient] Disconnecting from {self.host}:{self.port}")
         self._connected = False
 
         # Cancel listener task
@@ -132,6 +138,8 @@ class NuVoClient:
                 pass
             self._writer = None
             self._reader = None
+
+        logger.info(f"[NuVoClient] Disconnected from {self.host}:{self.port}")
 
     async def _initialize(self) -> None:
         """Send initialization commands to device."""
@@ -193,6 +201,7 @@ class NuVoClient:
             self._writer.write(cmd_bytes)
             await self._writer.drain()
         except OSError as e:
+            logger.error(f"[NuVoClient] Connection lost during send to {self.host}:{self.port}: {e}")
             self._connected = False
             raise CommandError(f"Failed to send command: {e}")
 
@@ -276,11 +285,13 @@ class NuVoClient:
         Background task to listen for all incoming data.
         Routes command responses to queue and events to subscribers.
         """
+        logger.info(f"[NuVoClient] Event listener started for {self.host}:{self.port}")
         while self._connected:
             try:
                 line = await self._reader.readline()
                 if not line:
                     # Connection closed
+                    logger.warning(f"[NuVoClient] Connection closed by device {self.host}:{self.port} (readline returned empty)")
                     self._connected = False
                     break
 
@@ -305,10 +316,13 @@ class NuVoClient:
                     pass
 
             except asyncio.CancelledError:
+                logger.info(f"[NuVoClient] Event listener cancelled for {self.host}:{self.port}")
                 break
             except Exception as e:
-                print(f"Error in event listener: {e}")
+                logger.error(f"[NuVoClient] Error in event listener for {self.host}:{self.port}: {e}")
                 await asyncio.sleep(1.0)
+
+        logger.info(f"[NuVoClient] Event listener stopped for {self.host}:{self.port}")
 
     # Discovery methods
 

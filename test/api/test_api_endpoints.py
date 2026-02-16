@@ -14,6 +14,7 @@ import json
 import time
 import argparse
 import sys
+import logging
 from datetime import datetime
 from typing import Dict, Any, Optional, List, Tuple
 from pathlib import Path
@@ -21,6 +22,33 @@ from pathlib import Path
 BASE_URL = "http://localhost:8000"
 RESULTS = []
 STATE_BACKUP_FILE = Path(__file__).parent / "system_state_backup.json"
+
+# Configure logging
+LOG_DIR = Path(__file__).parent.parent / "logs"
+LOG_DIR.mkdir(exist_ok=True)
+LOG_FILE = LOG_DIR / "test_api_endpoints.log"
+
+# Create formatter with timestamp
+formatter = logging.Formatter(
+    '%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# File handler
+file_handler = logging.FileHandler(LOG_FILE)
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+
+# Console handler (keep console output as is for now)
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+
+# Configure logger
+test_logger = logging.getLogger('test_api_endpoints')
+test_logger.setLevel(logging.INFO)
+test_logger.addHandler(file_handler)
+test_logger.addHandler(console_handler)
 
 # Test configuration
 MAX_VOLUME = 40  # Safety cap for volume tests
@@ -45,7 +73,9 @@ def log_verbose(message: str, indent: int = 0):
     """Print verbose log message with timestamp."""
     timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
     prefix = "  " * indent
-    print(f"[{timestamp}] {prefix}{message}")
+    formatted_msg = f"[{timestamp}] {prefix}{message}"
+    print(formatted_msg)
+    test_logger.info(formatted_msg)
 
 
 def test_endpoint(category: str, method: str, endpoint: str, expected_status: int = 200,
@@ -322,9 +352,9 @@ def verify_state_restored(original_state: Dict[str, Any], verbose: bool = False)
 
 def print_section(title: str):
     """Print a section header."""
-    print(f"\n{'='*70}")
-    print(f"  {title}")
-    print(f"{'='*70}")
+    header = f"\n{'='*70}\n  {title}\n{'='*70}"
+    print(header)
+    test_logger.info(f"=== {title} ===")
 
 
 def print_results():
@@ -343,20 +373,24 @@ def print_results():
     failed_tests = total_tests - passed_tests
 
     for category, results in categories.items():
-        print(f"\n{category}:")
+        category_line = f"\n{category}:"
+        print(category_line)
+        test_logger.info(category)
         for result in results:
             status = "[OK]" if result.success else "[FAIL]"
             code = f"[{result.response_code}]" if result.response_code else ""
             duration = f"({result.duration:.2f}s)" if result.duration else ""
-            print(f"  {status} {result.method:6} {result.endpoint:45} {code} {duration}")
+            result_line = f"  {status} {result.method:6} {result.endpoint:45} {code} {duration}"
+            print(result_line)
+            test_logger.info(f"{status} {result.method} {result.endpoint} {code} {duration}")
             if not result.success:
-                print(f"      -> {result.message}")
+                error_line = f"      -> {result.message}"
+                print(error_line)
+                test_logger.info(f"  Error: {result.message}")
 
-    print(f"\n{'='*70}")
-    print(f"Total: {total_tests} tests | Passed: {passed_tests} | Failed: {failed_tests}")
-    success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
-    print(f"Success Rate: {success_rate:.1f}%")
-    print(f"{'='*70}\n")
+    summary = f"\n{'='*70}\nTotal: {total_tests} tests | Passed: {passed_tests} | Failed: {failed_tests}\nSuccess Rate: {(passed_tests / total_tests * 100) if total_tests > 0 else 0:.1f}%\n{'='*70}\n"
+    print(summary)
+    test_logger.info(f"SUMMARY: Total: {total_tests}, Passed: {passed_tests}, Failed: {failed_tests}, Success Rate: {(passed_tests / total_tests * 100) if total_tests > 0 else 0:.1f}%")
 
 
 def confirm_comprehensive_test() -> bool:
@@ -1189,19 +1223,29 @@ def main():
 
     args = parser.parse_args()
 
+    # Log test start
+    test_logger.info("=" * 70)
+    test_logger.info(f"TEST RUN STARTED - Mode: {'Comprehensive' if args.comprehensive else 'Basic'}")
+    test_logger.info(f"Base URL: {BASE_URL}")
+    test_logger.info(f"Log file: {LOG_FILE}")
+    test_logger.info("=" * 70)
+
     if args.comprehensive:
         # Comprehensive mode - get confirmation first (unless --yes flag is used)
         if not args.yes and not confirm_comprehensive_test():
             print("\nComprehensive tests cancelled by user.")
+            test_logger.info("Comprehensive tests cancelled by user")
             return 0
 
         print("\n" + "="*70)
         print("  Starting comprehensive tests...")
         print("="*70)
+        test_logger.info("Starting comprehensive tests...")
 
         run_comprehensive_tests()
     else:
         # Basic mode - original tests
+        test_logger.info("Starting basic tests...")
         run_basic_tests()
 
     # =========================================================================
@@ -1214,8 +1258,13 @@ def main():
     # Print final results
     print_results()
 
-    # Return exit code based on results
+    # Log test completion
     failed = sum(1 for r in RESULTS if not r.success)
+    test_logger.info("=" * 70)
+    test_logger.info(f"TEST RUN COMPLETED - Result: {'PASSED' if failed == 0 else 'FAILED'}")
+    test_logger.info("=" * 70)
+
+    # Return exit code based on results
     return 0 if failed == 0 else 1
 
 

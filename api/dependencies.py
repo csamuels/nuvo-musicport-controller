@@ -1,9 +1,12 @@
 """Shared dependencies for API routes."""
 
+import logging
 from typing import Optional
 from nuvo_sdk import NuVoClient
 from nuvo_sdk.mcs_client_simple import SimpleMCSClient as MCSClient
 from .config import settings
+
+logger = logging.getLogger(__name__)
 
 # Global client instances
 _client: Optional[NuVoClient] = None
@@ -23,7 +26,12 @@ async def get_client() -> NuVoClient:
     from fastapi import HTTPException
 
     global _client
+    logging.info(f"[Dependencies] get_client called - _client is None: {_client is None}")
+    if _client is not None:
+        logging.info(f"[Dependencies] _client._connected: {_client._connected}")
+
     if _client is None:
+        logging.error("[Dependencies] _client is None! Device not initialized")
         raise HTTPException(
             status_code=503,
             detail="NuVo device not available. The device may be offline or failed to connect during startup."
@@ -31,12 +39,12 @@ async def get_client() -> NuVoClient:
 
     # If connection is down, try to reconnect
     if not _client._connected:
-        print("[Dependencies] MRAD connection is down, attempting reconnect...")
+        logging.info("[Dependencies] MRAD connection is down, attempting reconnect...")
         try:
             await _client.connect()
-            print("[Dependencies] MRAD reconnected successfully")
+            logging.info("[Dependencies] MRAD reconnected successfully")
         except Exception as e:
-            print(f"[Dependencies] MRAD reconnection failed: {e}")
+            logging.error(f"[Dependencies] MRAD reconnection failed: {e}")
             raise HTTPException(
                 status_code=503,
                 detail=f"NuVo device connection is down and reconnection failed: {str(e)}"
@@ -88,12 +96,12 @@ async def get_mcs_client() -> MCSClient:
 
     # If connection is down, try to reconnect
     if not _mcs_client._connected:
-        print("[Dependencies] MCS connection is down, attempting reconnect...")
+        logging.info("[Dependencies] MCS connection is down, attempting reconnect...")
         try:
             await _mcs_client.reconnect()
-            print("[Dependencies] MCS reconnected successfully")
+            logging.info("[Dependencies] MCS reconnected successfully")
         except Exception as e:
-            print(f"[Dependencies] MCS reconnection failed: {e}")
+            logging.error(f"[Dependencies] MCS reconnection failed: {e}")
             raise HTTPException(
                 status_code=503,
                 detail=f"Music Control Server (MCS) connection is down and reconnection failed: {str(e)}"

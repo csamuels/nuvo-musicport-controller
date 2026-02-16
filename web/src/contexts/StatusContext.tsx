@@ -21,7 +21,7 @@ const StatusContext = createContext<StatusContextType | undefined>(undefined);
 export function StatusProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<StatusMessage[]>([]);
 
-  const showStatus = useCallback((message: string, type: StatusType, duration: number = 5000) => {
+  const showStatus = useCallback((message: string, type: StatusType, duration: number = 120000) => {
     const id = `${Date.now()}-${Math.random()}`;
     const newMessage: StatusMessage = {
       id,
@@ -32,7 +32,7 @@ export function StatusProvider({ children }: { children: React.ReactNode }) {
 
     setMessages(prev => [...prev, newMessage]);
 
-    // Auto-remove after duration (except for loading messages)
+    // Auto-remove after duration (2 minutes default, except for loading messages)
     if (type !== 'loading' && duration > 0) {
       setTimeout(() => {
         setMessages(prev => prev.filter(m => m.id !== id));
